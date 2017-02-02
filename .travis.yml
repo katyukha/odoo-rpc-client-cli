@@ -1,0 +1,94 @@
+sudo: required
+dist: trusty
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+
+cache:
+  pip: true
+  apt: true
+
+env:
+  global:
+  matrix:
+    - ODOO_VERSION="7.0"
+      ODOO_RELEASE="7.0"
+      ODOO_PACKAGE="openerp"
+      ODOO_TEST_PROTOCOL='xml-rpc'
+
+    - ODOO_VERSION="8.0"
+      ODOO_RELEASE="8.0"
+      ODOO_PACKAGE="odoo"
+      ODOO_TEST_PROTOCOL='xml-rpc'
+
+    - ODOO_VERSION="9.0"
+      ODOO_RELEASE="9.0"
+      ODOO_PACKAGE="odoo"
+      ODOO_TEST_PROTOCOL='xml-rpc'
+
+    - ODOO_VERSION="10.0"
+      ODOO_RELEASE="10.0"
+      ODOO_PACKAGE="odoo"
+      ODOO_TEST_PROTOCOL='xml-rpc'
+
+matrix: 
+    include:
+        - python: 2.7
+          env: ODOO_VERSION="7.0"
+               ODOO_RELEASE="7.0"
+               ODOO_PACKAGE="openerp"
+               ODOO_TEST_PROTOCOL='local'
+               WITH_SUDO="sudo"
+               OPENERP_SERVER='/etc/openerp/openerp-server.conf'
+
+        - python: 2.7
+          env: ODOO_VERSION="8.0"
+               ODOO_RELEASE="8.0"
+               ODOO_PACKAGE="odoo"
+               ODOO_TEST_PROTOCOL='local'
+               WITH_SUDO="sudo"
+               OPENERP_SERVER='/etc/openerp/openerp-server.conf'
+
+        - python: 2.7
+          env: ODOO_VERSION="9.0"
+               ODOO_RELEASE="9.0"
+               ODOO_PACKAGE="odoo"
+               ODOO_TEST_PROTOCOL='local'
+               WITH_SUDO="sudo"
+               OPENERP_SERVER='/etc/openerp/openerp-server.conf'
+
+        - python: 2.7
+          env: ODOO_VERSION="10.0"
+               ODOO_RELEASE="10.0"
+               ODOO_PACKAGE="odoo"
+               ODOO_TEST_PROTOCOL='local'
+               WITH_SUDO="sudo"
+               OPENERP_SERVER='/etc/odoo/odoo.conf'
+               ODOO_RC='/etc/odoo/odoo.conf'
+
+install:
+  - "sudo apt-get update && sudo apt-get install postgresql-client postgresql adduser python-support locate"
+  - "wget http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/${ODOO_PACKAGE}_${ODOO_RELEASE}.latest_all.deb -O odoo.deb"
+  - "! command -v wkhtmltopdf >/dev/null 2>&1 && wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb -O wkhtmltox.deb"
+  - "! command -v wkhtmltopdf >/dev/null 2>&1 && sudo dpkg --force-depends -i wkhtmltox.deb"
+  - "sudo dpkg --force-depends -i odoo.deb"
+  - "sudo apt-get install -f -y"
+
+  # Normal install
+  - "$WITH_SUDO pip install --upgrade 'coveralls>=1.1' 'setuptools>=18' pip pytest pytest-cov pylama flake8"
+  - "$WITH_SUDO python setup.py develop"
+
+
+before_script:
+  - "sudo invoke-rc.d ${ODOO_PACKAGE} restart"
+  - "sleep 3"
+
+script:
+  - "$WITH_SUDO flake8 odoo_rpc_client_cli --count --statistics;"  # test code style
+  - "export TEST_CONNECTION_STR=${ODOO_TEST_PROTOCOL}://localhost:8069/ && $WITH_SUDO py.test --cov odoo_rpc_client_cli"
+
+after_success:
+  - "$WITH_SUDO coveralls"
+
