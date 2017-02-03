@@ -49,7 +49,7 @@ matrix:
                ODOO_PACKAGE="odoo"
                ODOO_TEST_PROTOCOL='local'
                WITH_SUDO="sudo"
-               OPENERP_SERVER='/etc/openerp/openerp-server.conf'
+               OPENERP_SERVER='/etc/odoo/openerp-server.conf'
 
         - python: 2.7
           env: ODOO_VERSION="9.0"
@@ -57,7 +57,7 @@ matrix:
                ODOO_PACKAGE="odoo"
                ODOO_TEST_PROTOCOL='local'
                WITH_SUDO="sudo"
-               OPENERP_SERVER='/etc/openerp/openerp-server.conf'
+               OPENERP_SERVER='/etc/odoo/openerp-server.conf'
 
         - python: 2.7
           env: ODOO_VERSION="10.0"
